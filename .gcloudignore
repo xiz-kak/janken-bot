@@ -1,0 +1,9 @@
+.gcloudignore
+.git
+.gitignore
+node_modules/
+.github/
+nodemon.json
+Procfile
+.env
+/dist/
