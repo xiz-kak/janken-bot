@@ -6,4 +6,5 @@ node_modules/
 nodemon.json
 Procfile
 .env
+service_account_key*
 /dist/
