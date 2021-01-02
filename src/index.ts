@@ -3,6 +3,7 @@ import { enableRequestLog } from './middleware/request_log'
 import echo from './commands/echo'
 import set from './commands/set'
 import get from './commands/get'
+import janken from './commands/janken'
 
 ;(async () => {
   const server = await app.start(process.env.PORT || 3000)
@@ -14,3 +15,4 @@ enableRequestLog(app)
 echo()
 set()
 get()
+janken()
