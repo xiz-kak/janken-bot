@@ -1,21 +1,11 @@
 import { app } from '../initializers/bolt'
 
 export default function() {
-  // app.command('/echo', async (args) => { echo(args) })
-  // app.command('/echo_dev', async (args) => { echo(args) })
-
-  // const echo = ({ command, ack, say }) => {
-  //   ack()
-
-  //   say(`発言：${command.text}`)
-  // }
-
-
   app.command('/janken', async (args) => { janken(args) })
   app.command('/janken_dev', async (args) => { janken(args) })
 
   const janken = async ({ command, ack, say, client, context }) => {
-    ack();
+    await ack();
 
     const message = {
       blocks: [
@@ -62,7 +52,7 @@ export default function() {
           ]
         }
       ],
-      text: `Message cannot be displayed correctly... Update your slack.`
+      text: `<@${command.user_id}> challenges ${command.text}`
     };
     await say(message);
     const message_10_sec = {
