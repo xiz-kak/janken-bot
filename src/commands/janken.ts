@@ -7,61 +7,13 @@ export default function() {
   const janken = async ({ command, ack, say, client, context }) => {
     await ack();
 
-    const message = {
+    const msg_kickoff = {
       blocks: [
         {
           "type": "section",
           "text": {
             "type": "mrkdwn",
-            "text": `<@${command.user_id}> challenges ${command.text}`
-          }
-        },
-        {
-          "type": "actions",
-          "elements": [
-            {
-              "type": "button",
-              "text": {
-                "type": "plain_text",
-                "text": ":fist:",
-                "emoji": true
-              },
-              "value": "click_me_123",
-              "action_id": "pick_fist"
-            },
-            {
-              "type": "button",
-              "text": {
-                "type": "plain_text",
-                "text": ":v:",
-                "emoji": true
-              },
-              "value": "click_me_123",
-              "action_id": "pick_v"
-            },
-            {
-              "type": "button",
-              "text": {
-                "type": "plain_text",
-                "text": ":hand:",
-                "emoji": true
-              },
-              "value": "click_me_123",
-              "action_id": "pick_hand"
-            }
-          ]
-        }
-      ],
-      text: `<@${command.user_id}> challenges ${command.text}`
-    };
-    await say(message);
-    const message_10_sec = {
-      blocks: [
-        {
-          "type": "section",
-          "text": {
-            "type": "mrkdwn",
-            "text": "Remaining..."
+            "text": `<@${command.user_id}> wants to janken with <!here>`
           },
           "accessory": {
             "type": "image",
@@ -71,13 +23,75 @@ export default function() {
         }
       ]
     }
-    const res = await say(message_10_sec);
-    console.log(res)
+    const res_kickoff = await say(msg_kickoff);
+
+    const attach_round_1 = [
+      {
+        color: "good",
+        blocks: [
+          {
+            "type": "section",
+            "text": {
+              "type": "mrkdwn",
+              "text": "Pick your hand!"
+            }
+          },
+          {
+            "type": "actions",
+            "elements": [
+              {
+                "type": "button",
+                "text": {
+                  "type": "plain_text",
+                  "text": ":fist:",
+                  "emoji": true
+                },
+                "value": "click_me_123",
+                "action_id": "pick_fist"
+              },
+              {
+                "type": "button",
+                "text": {
+                  "type": "plain_text",
+                  "text": ":v:",
+                  "emoji": true
+                },
+                "value": "click_me_123",
+                "action_id": "pick_v"
+              },
+              {
+                "type": "button",
+                "text": {
+                  "type": "plain_text",
+                  "text": ":hand:",
+                  "emoji": true
+                },
+                "value": "click_me_123",
+                "action_id": "pick_hand"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+
+    const res_round_1 = await client.chat.postMessage({
+      channel: res_kickoff.channel,
+      attachments: attach_round_1
+    });
+
+    console.log(res_kickoff)
+    console.log(res_round_1)
+
     setTimeout(() => {
       client.chat.update({
-        channel: res.channel,
-        ts: res.ts,
-        blocks: [{"type": "section", "text": {"type": "plain_text", "text": "Hello world"}}]
+        channel: res_kickoff.channel,
+        ts: res_kickoff.ts,
+        blocks: [{"type": "section", "text": {"type": "mrkdwn", "text": `Janken round started by <@${command.user_id}>`}}]
+      });
+      client.chat.delete({
+        channel: res_round_1.channel,
+        ts: res_round_1.ts
       });
     },11000);
   }
