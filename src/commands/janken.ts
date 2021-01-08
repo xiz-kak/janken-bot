@@ -1,4 +1,5 @@
 import { app } from '../initializers/bolt'
+import { firestore } from '../initializers/firestore'
 
 export default function() {
   app.command('/janken', async (args) => { janken(args) })
@@ -25,7 +26,7 @@ export default function() {
     }
     const res_kickoff = await say(msg_kickoff);
 
-    const attach_round_1 = [
+    const attach_round_0 = [
       {
         color: "good",
         blocks: [
@@ -38,6 +39,7 @@ export default function() {
           },
           {
             "type": "actions",
+            "block_id": `${res_kickoff.channel}_${res_kickoff.ts}-0`,
             "elements": [
               {
                 "type": "button",
@@ -46,8 +48,8 @@ export default function() {
                   "text": ":fist:",
                   "emoji": true
                 },
-                "value": "click_me_123",
-                "action_id": "pick_fist"
+                "value": "0",
+                "action_id": "pick_0"
               },
               {
                 "type": "button",
@@ -56,8 +58,8 @@ export default function() {
                   "text": ":v:",
                   "emoji": true
                 },
-                "value": "click_me_123",
-                "action_id": "pick_v"
+                "value": "2",
+                "action_id": "pick_2"
               },
               {
                 "type": "button",
@@ -66,8 +68,8 @@ export default function() {
                   "text": ":hand:",
                   "emoji": true
                 },
-                "value": "click_me_123",
-                "action_id": "pick_hand"
+                "value": "5",
+                "action_id": "pick_5"
               }
             ]
           }
@@ -75,23 +77,35 @@ export default function() {
       }
     ]
 
-    const res_round_1 = await client.chat.postMessage({
+    const matchesRef = firestore.collection('matches')
+    const match_id = res_kickoff.channel + '_' + res_kickoff.ts
+    const match = {
+      kickoff_user_id: res_kickoff.message.user,
+      team_id: res_kickoff.message.team,
+      channel_id: res_kickoff.channel,
+      kickoff_ts: res_kickoff.ts
+    }
+    await matchesRef
+      .doc(match_id)
+      .set(match)
+
+    const res_round_0 = await client.chat.postMessage({
       channel: res_kickoff.channel,
-      attachments: attach_round_1
+      attachments: attach_round_0
     });
 
     console.log(res_kickoff)
-    console.log(res_round_1)
+    console.log(res_round_0)
 
     setTimeout(() => {
       client.chat.update({
         channel: res_kickoff.channel,
         ts: res_kickoff.ts,
-        blocks: [{"type": "section", "text": {"type": "mrkdwn", "text": `Janken round started by <@${command.user_id}>`}}]
+        blocks: [{"type": "section", "text": {"type": "mrkdwn", "text": `Janken match started by <@${command.user_id}>`}}]
       });
       client.chat.delete({
-        channel: res_round_1.channel,
-        ts: res_round_1.ts
+        channel: res_round_0.channel,
+        ts: res_round_0.ts
       });
     },11000);
   }
