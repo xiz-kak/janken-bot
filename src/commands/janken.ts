@@ -77,7 +77,7 @@ export default function() {
       }
     ]
 
-    const matchesRef = firestore.collection('matches')
+    const matchesRef = firestore.collection(`teams/${res_kickoff.message.team}/matches`)
     const match_id = res_kickoff.channel + '_' + res_kickoff.ts
     const match = {
       kickoff_user_id: res_kickoff.message.user,

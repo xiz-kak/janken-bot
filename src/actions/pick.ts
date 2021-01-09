@@ -5,7 +5,7 @@ export default function() {
   app.action(/^pick_.*/, async ({ body, action, ack, say, client }) => {
     await ack();
 
-    const matchesRef = firestore.collection('matches')
+    const matchesRef = firestore.collection(`teams/${body.team.id}/matches`)
     const [match_id, round] = action.block_id.split('-')
 
     if (round * 1 === 0) {
