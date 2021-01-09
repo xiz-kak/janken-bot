@@ -108,7 +108,8 @@ export default function() {
             "type": "section",
             "text": {
               "type": "mrkdwn",
-              "text": `<@${command.user_id}> challenges <!here> to play Janken!\n${arr_players.join('\n')}`}
+              "text": `<@${command.user_id}> challenges <!here> to play Janken!\n${arr_players.join('\n')}`
+            }
           }
         ]
       }
