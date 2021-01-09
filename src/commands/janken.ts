@@ -14,12 +14,7 @@ export default function() {
           "type": "section",
           "text": {
             "type": "mrkdwn",
-            "text": `<@${command.user_id}> wants to janken with <!here>`
-          },
-          "accessory": {
-            "type": "image",
-            "image_url": `https://tenor.com/view/counter10-countdown-numbers-circles-gif-16733673?${ Date.now() }`,
-            "alt_text": "10 sec"
+            "text": `<@${command.user_id}> challenges <!here> to play Janken!`
           }
         }
       ]
@@ -34,7 +29,7 @@ export default function() {
             "type": "section",
             "text": {
               "type": "mrkdwn",
-              "text": "Pick your hand!"
+              "text": "Pick your hand in *10 sec* to join..."
             }
           },
           {
@@ -104,7 +99,7 @@ export default function() {
         .get()
 
       const arr_players = players.docs.map(p => {
-        return `<@${p.id}> joined`
+        return `- <@${p.id}> joined`
       })
 
       const msg_kickoff_replace = {
@@ -113,7 +108,7 @@ export default function() {
             "type": "section",
             "text": {
               "type": "mrkdwn",
-              "text": `Janken match started by <@${command.user_id}>\n${arr_players.join('\n')}`}
+              "text": `<@${command.user_id}> challenges <!here> to play Janken!\n${arr_players.join('\n')}`}
           }
         ]
       }
