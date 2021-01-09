@@ -97,12 +97,33 @@ export default function() {
     console.log(res_kickoff)
     console.log(res_round_0)
 
-    setTimeout(() => {
+    setTimeout(async () => {
+      const players = await matchesRef
+        .doc(match_id)
+        .collection('players')
+        .get()
+
+      const arr_players = players.docs.map(p => {
+        return `<@${p.id}> joined`
+      })
+
+      const msg_kickoff_replace = {
+        blocks: [
+          {
+            "type": "section",
+            "text": {
+              "type": "mrkdwn",
+              "text": `Janken match started by <@${command.user_id}>\n${arr_players.join('\n')}`}
+          }
+        ]
+      }
+
       client.chat.update({
         channel: res_kickoff.channel,
         ts: res_kickoff.ts,
-        blocks: [{"type": "section", "text": {"type": "mrkdwn", "text": `Janken match started by <@${command.user_id}>`}}]
+        blocks: msg_kickoff_replace.blocks
       });
+
       client.chat.delete({
         channel: res_round_0.channel,
         ts: res_round_0.ts

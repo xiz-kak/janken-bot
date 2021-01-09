@@ -2,7 +2,7 @@ import { app } from '../initializers/bolt'
 import { firestore } from '../initializers/firestore'
 
 export default function() {
-  app.action(/^pick_.*/, async ({ body, action, ack, say, client }) => {
+  app.action(/^pick_.*/, async ({ body, action, ack, respond }) => {
     await ack();
 
     const matchesRef = firestore.collection(`teams/${body.team.id}/matches`)
@@ -24,23 +24,9 @@ export default function() {
       .doc(body.user.id)
       .set({hand: action.value}, {merge: true})
 
-    console.log("HERE")
-    console.log(action)
-    console.log(body);
-
-    const msg_pick_hand = {
-      blocks: [
-        {
-          "type": "section",
-          "text": {
-            "type": "mrkdwn",
-            "text": `<@${ body.user.id }> picked ${ action.text.text }`
-          }
-        }
-      ]
-    }
-
-    await say(msg_pick_hand);
+    await respond({
+      replace_original: false,
+      text: `You picked ${ action.text.text }`
+    });
   });
-
 }
