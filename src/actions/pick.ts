@@ -9,26 +9,20 @@ export default function() {
     const [match_id, round] = action.block_id.split('-')
 
     if (round * 1 === 0) {
-      const new_player = {
-        players: {
-          [`${body.user.id}`]: "playing"
-        }
-      }
       await matchesRef
         .doc(match_id)
-        .set(new_player, {merge: true})
+        .collection('players')
+        .doc(body.user.id)
+        .set({status: "playing"}, {merge: true})
     }
 
-    const hand = {
-      hands: {
-        [`${body.user.id}`]: `${action.value}`
-      }
-    }
     await matchesRef
       .doc(match_id)
       .collection('rounds')
       .doc(round)
-      .set(hand, {merge: true})
+      .collection('hands')
+      .doc(body.user.id)
+      .set({hand: action.value}, {merge: true})
 
     console.log("HERE")
     console.log(action)
