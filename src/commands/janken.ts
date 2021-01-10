@@ -54,7 +54,7 @@ export default function() {
                   "emoji": true
                 },
                 "value": "1",
-                "action_id": "pick_2"
+                "action_id": "pick_1"
               },
               {
                 "type": "button",
@@ -64,7 +64,7 @@ export default function() {
                   "emoji": true
                 },
                 "value": "2",
-                "action_id": "pick_5"
+                "action_id": "pick_2"
               }
             ]
           }
@@ -144,14 +144,14 @@ export default function() {
 
 const judge_round = async (matchesRef, client, match_id, round) => {
   // TODO: Start second round
-  //   - post results in the thread
-  //     - get hands in the round -> DONE
-  //     - calculate winner or draw -> DONE
-  //     - save the result
-  //     - post the result in thread
-  //     - update the result in kickoff msg
-  //     - if draw
-  //       -> post ephemeral to survivers
+  //   - get hands in the round -> DONE
+  //   - calculate winner or draw -> DONE
+  //   - post the result in thread -> DONE
+  //   - save the round result -> DONE
+  //   - if draw
+  //     -> post ephemeral to survivers
+  //   - if one_win or 10 rounds over
+  //     -> post match result
 
   const hands = await matchesRef
     .doc(match_id)
@@ -181,19 +181,61 @@ const judge_round = async (matchesRef, client, match_id, round) => {
   console.log(arr_hands)
   console.log(arr_distinct_hands)
 
+  let round_status : { [s: string]: any } = {}
   if (arr_distinct_hands.length === 2) {
     const loser_idx = ((arr_distinct_hands[0] - arr_distinct_hands[1] + 3) % 3) - 1
     const loser_hand = arr_distinct_hands[loser_idx]
     const winner_hand = arr_distinct_hands[1-loser_idx]
+
     console.log(`Winner hand: ${winner_hand}`)
     console.log(`Loser  hand: ${loser_hand}`)
+
+    const emojis = {0: ":fist:", 1: ":v:", 2: ":hand:"}
+
+    const arr_round_result = hands.docs.map(hand => {
+      const data = hand.data()
+      return `- <@${hand.id}> ${emojis[data.hand]} ${ data.hand == winner_hand ? "(WIN)" : "" }`
+    })
+
+    const msg_round_result = {
+      blocks: [
+        {
+          "type": "section",
+          "text": {
+            "type": "mrkdwn",
+            "text": `Round ${round+1}:\n${arr_round_result.join('\n')}`
+          }
+        }
+      ]
+    }
+
+    const [channel_id, ts] = match_id.split('_')
+    client.chat.postMessage({
+      channel: channel_id,
+      thread_ts: ts,
+      blocks: msg_round_result.blocks
+    });
+
+    round_status = {
+      winner_hand: winner_hand,
+      loser_hand: loser_hand
+    }
     if (player_hands[winner_hand].length === 1) {
       // TODO close match
+      round_status.status = "one_win"
     } else {
       // TODO move next round
+      round_status.status = "multi_win"
     }
   } else {
     console.log("DRAW")
     // TODO move next round
+    round_status.status = "draw"
   }
+
+  await matchesRef
+    .doc(match_id)
+    .collection('rounds')
+    .doc(String(round))
+    .set(round_status)
 }
