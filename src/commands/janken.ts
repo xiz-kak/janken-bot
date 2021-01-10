@@ -53,7 +53,7 @@ export default function() {
                   "text": ":v:",
                   "emoji": true
                 },
-                "value": "2",
+                "value": "1",
                 "action_id": "pick_2"
               },
               {
@@ -63,7 +63,7 @@ export default function() {
                   "text": ":hand:",
                   "emoji": true
                 },
-                "value": "5",
+                "value": "2",
                 "action_id": "pick_5"
               }
             ]
@@ -93,6 +93,11 @@ export default function() {
     console.log(res_round_0)
 
     setTimeout(async () => {
+      client.chat.delete({
+        channel: res_round_0.channel,
+        ts: res_round_0.ts
+      });
+
       const players = await matchesRef
         .doc(match_id)
         .collection('players')
@@ -102,13 +107,15 @@ export default function() {
         return `- <@${p.id}> joined`
       })
 
+      const text_players = arr_players.length === 0 ? "- No one joined :cry:" : arr_players.join('\n')
+
       const msg_kickoff_replace = {
         blocks: [
           {
             "type": "section",
             "text": {
               "type": "mrkdwn",
-              "text": `<@${command.user_id}> challenges <!here> to play Janken!\n${arr_players.join('\n')}`
+              "text": `<@${command.user_id}> challenges <!here> to play Janken!\n${text_players}`
             }
           }
         ]
@@ -120,10 +127,73 @@ export default function() {
         blocks: msg_kickoff_replace.blocks
       });
 
-      client.chat.delete({
-        channel: res_round_0.channel,
-        ts: res_round_0.ts
-      });
+      if (arr_players.length === 1) {
+        // TODO if length === 1
+        client.chat.postMessage({
+          channel: res_kickoff.channel,
+          thread_ts: res_kickoff.ts,
+          text: "You won!! :tada:"
+        });
+      } else if (arr_players.length > 1) {
+        judge_round(matchesRef, client, match_id, 0)
+      }
+
     },11000);
+  }
+}
+
+const judge_round = async (matchesRef, client, match_id, round) => {
+  // TODO: Start second round
+  //   - post results in the thread
+  //     - get hands in the round -> DONE
+  //     - calculate winner or draw -> DONE
+  //     - save the result
+  //     - post the result in thread
+  //     - update the result in kickoff msg
+  //     - if draw
+  //       -> post ephemeral to survivers
+
+  const hands = await matchesRef
+    .doc(match_id)
+    .collection('rounds')
+    .doc(String(round))
+    .collection('hands')
+    .get()
+
+  let player_hands = {
+    0: [],
+    1: [],
+    2: []
+  }
+
+  let arr_hands : number[] = []
+
+  hands.forEach(hand => {
+    const data = hand.data()
+    // player_hands[`hand_${data.hand}`].push(hand.id)
+    player_hands[data.hand].push(hand.id)
+    arr_hands.push(Number(data.hand))
+  })
+
+  const arr_distinct_hands = [...new Set(arr_hands)]
+
+  console.log(player_hands)
+  console.log(arr_hands)
+  console.log(arr_distinct_hands)
+
+  if (arr_distinct_hands.length === 2) {
+    const loser_idx = ((arr_distinct_hands[0] - arr_distinct_hands[1] + 3) % 3) - 1
+    const loser_hand = arr_distinct_hands[loser_idx]
+    const winner_hand = arr_distinct_hands[1-loser_idx]
+    console.log(`Winner hand: ${winner_hand}`)
+    console.log(`Loser  hand: ${loser_hand}`)
+    if (player_hands[winner_hand].length === 1) {
+      // TODO close match
+    } else {
+      // TODO move next round
+    }
+  } else {
+    console.log("DRAW")
+    // TODO move next round
   }
 }
