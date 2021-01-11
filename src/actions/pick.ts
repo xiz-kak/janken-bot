@@ -15,6 +15,7 @@ export default function() {
         .doc(body.user.id)
         .set({status: "playing"}, {merge: true})
     }
+    // TODO filter survivers if round > 0
 
     await matchesRef
       .doc(match_id)
