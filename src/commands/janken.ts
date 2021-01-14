@@ -112,7 +112,7 @@ export default function() {
       if (arr_player_ids.length === 0) {
         text_players = "- No one joined :cry:"
       } else if (arr_player_ids.length === 1) {
-        text_players = `- Only <@${ arr_player_ids[0] }> joined.\nJanken was not started. (2+ players are needed)`
+        text_players = `- Only <@${ arr_player_ids[0] }> joined.\nJanken was not started :cry: (2+ players are needed)`
       } else {
         text_players = arr_player_ids.map(p_id => { return `- <@${ p_id }> joined`}).join('\n')
       }
@@ -143,17 +143,6 @@ export default function() {
 }
 
 const judge_round = async (matchesRef, client, match_id, round) => {
-  // TODO: Start second round
-  //   - get hands in the round -> DONE
-  //   - calculate winner or draw -> DONE
-  //   - post the result in thread -> DONE
-  //   - save the round result -> DONE
-  //   - if draw or multi_win -> DONE
-  //     -> post next round to survivers -> DONE
-  //   - if one_win or 10 rounds over -> DONE
-  //     -> post match result -> DONE
-  //   - refactor
-
   const hands = await matchesRef
     .doc(match_id)
     .collection('rounds')
@@ -174,6 +163,8 @@ const judge_round = async (matchesRef, client, match_id, round) => {
     player_hands[data.hand].push(hand.id)
     arr_hands.push(Number(data.hand))
   })
+
+  // TODO if arr_hands.length === 0 (everyone skipped) or 1, close match
 
   const arr_distinct_hands = [...new Set(arr_hands)]
 
@@ -218,7 +209,8 @@ const judge_round = async (matchesRef, client, match_id, round) => {
 
     round_status = {
       winner_hand: winner_hand,
-      loser_hand: loser_hand
+      loser_hand: loser_hand,
+      survivers: player_hands[winner_hand]
     }
     if (player_hands[winner_hand].length === 1) {
       const msg_match_result = {
@@ -303,6 +295,7 @@ const judge_round = async (matchesRef, client, match_id, round) => {
     });
     kick_next_round(matchesRef, client, match_id, round, player_ids)
     round_status.status = "draw"
+    round_status.survivers = player_ids
   }
 
   await matchesRef
@@ -313,6 +306,7 @@ const judge_round = async (matchesRef, client, match_id, round) => {
 }
 
 const kick_next_round = async (matchesRef, client, match_id, current_round, player_ids) => {
+  if (current_round >= 9) { return }
   const [channel_id, ts] = match_id.split('_')
   const next_round = current_round + 1
 
