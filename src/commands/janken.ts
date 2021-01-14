@@ -78,7 +78,8 @@ export default function() {
       kickoff_user_id: res_kickoff.message.user,
       team_id: res_kickoff.message.team,
       channel_id: res_kickoff.channel,
-      kickoff_ts: res_kickoff.ts
+      kickoff_ts: res_kickoff.ts,
+      kickoff_at: new Date()
     }
     await matchesRef
       .doc(match_id)
@@ -93,7 +94,7 @@ export default function() {
     console.log(res_round_0)
 
     setTimeout(async () => {
-      client.chat.delete({
+      await client.chat.delete({
         channel: res_round_0.channel,
         ts: res_round_0.ts
       });
@@ -103,11 +104,18 @@ export default function() {
         .collection('players')
         .get()
 
-      const arr_players = players.docs.map(p => {
-        return `- <@${p.id}> joined`
+      const arr_player_ids = players.docs.map(player => {
+        return player.id
       })
 
-      const text_players = arr_players.length === 0 ? "- No one joined :cry:" : arr_players.join('\n')
+      let text_players : string
+      if (arr_player_ids.length === 0) {
+        text_players = "- No one joined :cry:"
+      } else if (arr_player_ids.length === 1) {
+        text_players = `- Only <@${ arr_player_ids[0] }> joined.\nJanken was not started. (2+ players are needed)`
+      } else {
+        text_players = arr_player_ids.map(p_id => { return `- <@${ p_id }> joined`}).join('\n')
+      }
 
       const msg_kickoff_replace = {
         blocks: [
@@ -127,17 +135,9 @@ export default function() {
         blocks: msg_kickoff_replace.blocks
       });
 
-      if (arr_players.length === 1) {
-        // TODO if length === 1
-        await client.chat.postMessage({
-          channel: res_kickoff.channel,
-          thread_ts: res_kickoff.ts,
-          text: "You won!! :tada:"
-        });
-      } else if (arr_players.length > 1) {
+      if (arr_player_ids.length > 1) {
         judge_round(matchesRef, client, match_id, 0)
       }
-
     },11000);
   }
 }
@@ -168,8 +168,6 @@ const judge_round = async (matchesRef, client, match_id, round) => {
   }
 
   let arr_hands : number[] = []
-
-  // TODO close match if only one joins
 
   hands.forEach(hand => {
     const data = hand.data()
