@@ -26,8 +26,9 @@ export default function() {
         .get()
 
       const round_status = roundStatusDoc.data() as RoundStatus
+      const survivers = round_status.survivers
 
-      if (!round_status.survivers.includes(body.user.id)) {
+      if (!survivers || !survivers.includes(body.user.id)) {
         await respond({
           replace_original: false,
           text: `Sorry, you cannot join :pray:\nYou are not a surviver.`
