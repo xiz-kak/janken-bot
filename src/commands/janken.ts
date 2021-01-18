@@ -166,6 +166,23 @@ const judge_round = async (matchesRef, client, match_id, round) => {
 
   // TODO if arr_hands.length === 0 (everyone skipped) or 1, close match
 
+  // if arr_hands.length === 0
+  //   Post "- (No one joined)" in thread
+  //   Post "Janken was cancelled" in broadcast
+  // if arr_hands.length === 1
+  //   Post "Round: - hogehoge :v: (WIN)" in thread
+  //   Post "Winner: @hogehoge" in broadcast
+  // else
+  //   if arr_distinct_hands.length ===2
+  //     Post round_result in thread
+  //     if one_win
+  //       Post match_result in broadcast
+  //     else
+  //       kick_next_round <- include if round >=9
+  //   else
+  //     Post round_result in thread
+  //     kick_next_round
+
   const arr_distinct_hands = [...new Set(arr_hands)]
 
   console.log(player_hands)
@@ -234,32 +251,8 @@ const judge_round = async (matchesRef, client, match_id, round) => {
 
       round_status.status = "one_win"
     } else {
-      if (round >= 9) {
-        const text_winners = player_hands[winner_hand].map(p_id => {
-          return `<@${p_id}> `
-        })
+      kick_next_round(matchesRef, client, match_id, round, player_hands[winner_hand])
 
-        const msg_match_result = {
-          blocks: [
-            {
-              "type": "section",
-              "text": {
-                "type": "mrkdwn",
-                "text": `10 rounds over!\nWinners: ${ text_winners } :tada:`
-              }
-            }
-          ]
-        }
-
-        await client.chat.postMessage({
-          channel: channel_id,
-          thread_ts: ts,
-          reply_broadcast: true,
-          blocks: msg_match_result.blocks
-        });
-      } else {
-        kick_next_round(matchesRef, client, match_id, round, player_hands[winner_hand])
-      }
       round_status.status = "multi_win"
     }
   } else {
@@ -306,8 +299,35 @@ const judge_round = async (matchesRef, client, match_id, round) => {
 }
 
 const kick_next_round = async (matchesRef, client, match_id, current_round, player_ids) => {
-  if (current_round >= 9) { return }
   const [channel_id, ts] = match_id.split('_')
+
+  if (current_round >= 9) {
+    const text_winners = player_ids.map(p_id => {
+      return `<@${p_id}> `
+    })
+
+    const msg_match_result = {
+      blocks: [
+        {
+          "type": "section",
+          "text": {
+            "type": "mrkdwn",
+            "text": `10 rounds over!\nWinners: ${ text_winners } :tada:`
+          }
+        }
+      ]
+    }
+
+    await client.chat.postMessage({
+      channel: channel_id,
+      thread_ts: ts,
+      reply_broadcast: true,
+      blocks: msg_match_result.blocks
+    });
+
+    return
+  }
+
   const next_round = current_round + 1
 
   const text_players = player_ids.map(p_id => {
