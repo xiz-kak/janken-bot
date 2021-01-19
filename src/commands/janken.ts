@@ -14,7 +14,7 @@ export default function() {
           "type": "section",
           "text": {
             "type": "mrkdwn",
-            "text": `<@${command.user_id}> challenges <!here> to play Janken!`
+            "text": `<@${command.user_id}> wants to play Janken!!\n<!here> Open thread to join!! :point_down:`
           }
         }
       ]
@@ -87,6 +87,7 @@ export default function() {
 
     const res_round_0 = await client.chat.postMessage({
       channel: res_kickoff.channel,
+      thread_ts: res_kickoff.ts,
       attachments: attach_round_0
     });
 
@@ -123,7 +124,7 @@ export default function() {
             "type": "section",
             "text": {
               "type": "mrkdwn",
-              "text": `<@${command.user_id}> challenges <!here> to play Janken!\n${text_players}`
+              "text": `<@${command.user_id}> challenged to play Janken!!\n${text_players}`
             }
           }
         ]
@@ -245,7 +246,6 @@ const judge_round = async (matchesRef, client, match_id, round) => {
       await client.chat.postMessage({
         channel: channel_id,
         thread_ts: ts,
-        reply_broadcast: true,
         blocks: msg_match_result.blocks
       });
 
@@ -321,7 +321,6 @@ const kick_next_round = async (matchesRef, client, match_id, current_round, play
     await client.chat.postMessage({
       channel: channel_id,
       thread_ts: ts,
-      reply_broadcast: true,
       blocks: msg_match_result.blocks
     });
 
@@ -387,6 +386,7 @@ const kick_next_round = async (matchesRef, client, match_id, current_round, play
 
   const res_round_n = await client.chat.postMessage({
     channel: channel_id,
+    thread_ts: ts,
     attachments: attach_round_n
   });
 
