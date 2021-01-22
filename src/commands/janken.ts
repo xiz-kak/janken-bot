@@ -1,5 +1,6 @@
 import { app } from '../initializers/bolt'
 import { firestore } from '../initializers/firestore'
+import * as SlackClient from '../clients/slack_client'
 
 export default function() {
   app.command('/janken', async (args) => { janken(args) })
@@ -21,56 +22,14 @@ export default function() {
     }
     const res_kickoff = await say(msg_kickoff);
 
-    const attach_round_0 = [
-      {
-        color: "good",
-        blocks: [
-          {
-            "type": "section",
-            "text": {
-              "type": "mrkdwn",
-              "text": "Pick your hand in *10 sec* to join..."
-            }
-          },
-          {
-            "type": "actions",
-            "block_id": `${res_kickoff.channel}_${res_kickoff.ts}-0`,
-            "elements": [
-              {
-                "type": "button",
-                "text": {
-                  "type": "plain_text",
-                  "text": ":fist:",
-                  "emoji": true
-                },
-                "value": "0",
-                "action_id": "pick_0"
-              },
-              {
-                "type": "button",
-                "text": {
-                  "type": "plain_text",
-                  "text": ":v:",
-                  "emoji": true
-                },
-                "value": "1",
-                "action_id": "pick_1"
-              },
-              {
-                "type": "button",
-                "text": {
-                  "type": "plain_text",
-                  "text": ":hand:",
-                  "emoji": true
-                },
-                "value": "2",
-                "action_id": "pick_2"
-              }
-            ]
-          }
-        ]
-      }
-    ]
+    const res_round_0 = await SlackClient.post_round_0_actions(
+      client,
+      res_kickoff.channel,
+      res_kickoff.ts
+    )
+
+    console.log(res_kickoff)
+    console.log(res_round_0)
 
     const matchesRef = firestore.collection(`teams/${res_kickoff.message.team}/matches`)
     const match_id = res_kickoff.channel + '_' + res_kickoff.ts
@@ -84,15 +43,6 @@ export default function() {
     await matchesRef
       .doc(match_id)
       .set(match)
-
-    const res_round_0 = await client.chat.postMessage({
-      channel: res_kickoff.channel,
-      thread_ts: res_kickoff.ts,
-      attachments: attach_round_0
-    });
-
-    console.log(res_kickoff)
-    console.log(res_round_0)
 
     setTimeout(async () => {
       await client.chat.delete({
