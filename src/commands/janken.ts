@@ -14,7 +14,7 @@ export default function() {
           "type": "section",
           "text": {
             "type": "mrkdwn",
-            "text": `<@${command.user_id}> wants to play Janken!!\n<!here> Open thread to join!! :point_down:`
+            "text": `<@${command.user_id}> wants to play Janken!!\nOpen thread to join!! :point_down:`
           }
         }
       ]
