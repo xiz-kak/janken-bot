@@ -350,7 +350,7 @@ const kick_next_round = async (matchesRef, client, match_id, current_round, play
 
   const attach_round_n = [
     {
-      color: "good",
+      color: "#f0ad4e",
       blocks: [
         {
           "type": "section",

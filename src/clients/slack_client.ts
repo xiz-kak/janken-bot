@@ -1,7 +1,7 @@
 export function post_round_0_actions(client, channel_id, kickoff_ts,) {
   const msg_attach_round_0 = [
     {
-      color: "good",
+      color: "#f0ad4e",
       blocks: [
         {
           "type": "section",
