@@ -143,14 +143,14 @@ const judge_round = async (matchesRef, client, match_id, round) => {
           "type": "section",
           "text": {
             "type": "mrkdwn",
-            "text": `Round ${round+1}:\n- No one joined :cry:`
+            "text": `[Round ${ round + 1 }] No one joins :cry:`
           }
         },
         {
           "type": "section",
           "text": {
             "type": "mrkdwn",
-            "text": `Janken was cancelled`
+            "text": `:no_entry: Janken was cancelled`
           }
         }
       ]
@@ -171,14 +171,14 @@ const judge_round = async (matchesRef, client, match_id, round) => {
           "type": "section",
           "text": {
             "type": "mrkdwn",
-            "text": `Round ${round+1}:\n- <@${player_hands[hand][0]}> ${EMOJIS[hand]} (WIN)`
+            "text": `[Round ${ round + 1 }] Only <@${ player_hands[hand][0] }> joins`
           }
         },
         {
           "type": "section",
           "text": {
             "type": "mrkdwn",
-            "text": `Winner: <@${player_hands[hand][0]}> :tada:`
+            "text": `*Final winner: <@${ player_hands[hand][0] }>* :tada:`
           }
         }
       ]
@@ -208,9 +208,8 @@ const judge_round = async (matchesRef, client, match_id, round) => {
     console.log(`Winner hand: ${winner_hand}`)
     console.log(`Loser  hand: ${loser_hand}`)
 
-    const arr_round_result = hands.docs.map(hand => {
-      const data = hand.data()
-      return `- <@${hand.id}> ${EMOJIS[data.hand]} ${ data.hand == winner_hand ? "(WIN)" : "" }`
+    const arr_winners = player_hands[winner_hand].map(p_id => {
+      return `<@${ p_id }>`
     })
 
     const msg_round_result = {
@@ -219,8 +218,22 @@ const judge_round = async (matchesRef, client, match_id, round) => {
           "type": "section",
           "text": {
             "type": "mrkdwn",
-            "text": `Round ${round+1}:\n${arr_round_result.join('\n')}`
+            "text": `[Round ${ round+1 }] ${ EMOJIS[winner_hand] } wins!!`
           }
+        }
+      ],
+      attachments: [
+        {
+          "color": "#5cb85c",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": `${ arr_winners.join(' ') }`
+              }
+            }
+          ]
         }
       ]
     }
@@ -228,7 +241,9 @@ const judge_round = async (matchesRef, client, match_id, round) => {
     await client.chat.postMessage({
       channel: channel_id,
       thread_ts: ts,
-      blocks: msg_round_result.blocks
+      text: msg_round_result.blocks[0].text.text,
+      blocks: msg_round_result.blocks,
+      attachments: msg_round_result.attachments
     });
 
     round_status = {
@@ -243,7 +258,7 @@ const judge_round = async (matchesRef, client, match_id, round) => {
             "type": "section",
             "text": {
               "type": "mrkdwn",
-              "text": `Winner: <@${player_hands[winner_hand][0]}> :tada:`
+              "text": `*Final winner: <@${player_hands[winner_hand][0]}>* :tada:`
             }
           }
         ]
@@ -252,6 +267,7 @@ const judge_round = async (matchesRef, client, match_id, round) => {
       await client.chat.postMessage({
         channel: channel_id,
         thread_ts: ts,
+        text: msg_match_result.blocks[0].text.text,
         blocks: msg_match_result.blocks
       });
 
@@ -262,18 +278,13 @@ const judge_round = async (matchesRef, client, match_id, round) => {
       round_status.status = "multi_win"
     }
   } else {
-    const arr_round_result = hands.docs.map(hand => {
-      const data = hand.data()
-      return `- <@${hand.id}> ${EMOJIS[data.hand]}`
-    })
-
     const msg_round_result = {
       blocks: [
         {
           "type": "section",
           "text": {
             "type": "mrkdwn",
-            "text": `Round ${round+1}:\n${arr_round_result.join('\n')}`
+            "text": `[Round ${ round + 1 }] Draw`
           }
         }
       ]
@@ -282,6 +293,7 @@ const judge_round = async (matchesRef, client, match_id, round) => {
     await client.chat.postMessage({
       channel: channel_id,
       thread_ts: ts,
+      text: msg_round_result.blocks[0].text.text,
       blocks: msg_round_result.blocks
     });
 
@@ -315,7 +327,7 @@ const kick_next_round = async (matchesRef, client, match_id, current_round, play
           "type": "section",
           "text": {
             "type": "mrkdwn",
-            "text": `10 rounds over!\nWinners: ${ text_winners } :tada:`
+            "text": `10 rounds over!\n*Final winners: ${ text_winners }* :tada:`
           }
         }
       ]
