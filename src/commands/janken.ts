@@ -2,6 +2,12 @@ import { app } from '../initializers/bolt'
 import { firestore } from '../initializers/firestore'
 import * as SlackClient from '../clients/slack_client'
 
+// TODOs:
+// - move some logics to SlackClient
+// - show ready/thinking (not use ephemeral)
+// - add text to postMessage APIs
+// - refactor
+
 export default function() {
   app.command('/janken', async (args) => { janken(args) })
   app.command('/janken_dev', async (args) => { janken(args) })
@@ -9,18 +15,10 @@ export default function() {
   const janken = async ({ command, ack, say, client, context }) => {
     await ack();
 
-    const msg_kickoff = {
-      blocks: [
-        {
-          "type": "section",
-          "text": {
-            "type": "mrkdwn",
-            "text": `<@${command.user_id}> wants to play Janken!!\nOpen thread to join!! :point_down:`
-          }
-        }
-      ]
-    }
-    const res_kickoff = await say(msg_kickoff);
+    const res_kickoff = await SlackClient.post_kickoff(
+      say,
+      command.user_id
+    )
 
     const res_round_0 = await SlackClient.post_round_0_actions(
       client,
@@ -28,8 +26,8 @@ export default function() {
       res_kickoff.ts
     )
 
-    console.log(res_kickoff)
-    console.log(res_round_0)
+    // console.log(res_kickoff)
+    // console.log(res_round_0)
 
     const matchesRef = firestore.collection(`teams/${res_kickoff.message.team}/matches`)
     const match_id = res_kickoff.channel + '_' + res_kickoff.ts
@@ -55,38 +53,19 @@ export default function() {
         .collection('players')
         .get()
 
-      const arr_player_ids = players.docs.map(player => {
+      const player_ids = players.docs.map(player => {
         return player.id
       })
 
-      let text_players : string
-      if (arr_player_ids.length === 0) {
-        text_players = "- No one joined :cry:"
-      } else if (arr_player_ids.length === 1) {
-        text_players = `- Only <@${ arr_player_ids[0] }> joined.\nJanken was not started :cry: (2+ players are needed)`
-      } else {
-        text_players = arr_player_ids.map(p_id => { return `- <@${ p_id }> joined`}).join('\n')
-      }
+      SlackClient.update_kickoff(
+        client,
+        res_kickoff.channel,
+        res_kickoff.ts,
+        command.user_id,
+        player_ids
+      )
 
-      const msg_kickoff_replace = {
-        blocks: [
-          {
-            "type": "section",
-            "text": {
-              "type": "mrkdwn",
-              "text": `<@${command.user_id}> challenged to play Janken!!\n${text_players}`
-            }
-          }
-        ]
-      }
-
-      client.chat.update({
-        channel: res_kickoff.channel,
-        ts: res_kickoff.ts,
-        blocks: msg_kickoff_replace.blocks
-      });
-
-      if (arr_player_ids.length > 1) {
+      if (player_ids.length > 1) {
         judge_round(matchesRef, client, match_id, 0)
       }
     },11000);
