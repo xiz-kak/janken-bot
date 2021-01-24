@@ -20,10 +20,12 @@ export default function() {
       command.user_id
     )
 
-    const res_round_0 = await SlackClient.post_round_0_actions(
+    const res_round_0 = await SlackClient.post_round_actions(
       client,
       res_kickoff.channel,
-      res_kickoff.ts
+      res_kickoff.ts,
+      0,
+      null
     )
 
     // console.log(res_kickoff)
@@ -208,93 +210,25 @@ const kick_next_round = async (matchesRef, client, match_id, current_round, play
   const [channel_id, ts] = match_id.split('_')
 
   if (current_round >= 9) {
-    const text_winners = player_ids.map(p_id => {
-      return `<@${p_id}> `
-    })
-
-    const msg_match_result = {
-      blocks: [
-        {
-          "type": "section",
-          "text": {
-            "type": "mrkdwn",
-            "text": `10 rounds over!\n*Final winners: ${ text_winners }* :tada:`
-          }
-        }
-      ]
-    }
-
-    await client.chat.postMessage({
-      channel: channel_id,
-      thread_ts: ts,
-      blocks: msg_match_result.blocks
-    });
+    await SlackClient.post_match_result_max_round(
+      client,
+      channel_id,
+      ts,
+      player_ids
+    )
 
     return
   }
 
   const next_round = current_round + 1
 
-  const text_players = player_ids.map(p_id => {
-    return `<@${p_id}> `
-  })
-
-  const attach_round_n = [
-    {
-      color: "#f0ad4e",
-      blocks: [
-        {
-          "type": "section",
-          "text": {
-            "type": "mrkdwn",
-            "text": `${ text_players.join('') } Hi, survivers!!\nPick your hand in *10 sec* ...`
-          }
-        },
-        {
-          "type": "actions",
-          "block_id": `${channel_id}_${ts}-${next_round}`,
-          "elements": [
-            {
-              "type": "button",
-              "text": {
-                "type": "plain_text",
-                "text": ":fist:",
-                "emoji": true
-              },
-              "value": "0",
-              "action_id": "pick_0"
-            },
-            {
-              "type": "button",
-              "text": {
-                "type": "plain_text",
-                "text": ":v:",
-                "emoji": true
-              },
-              "value": "1",
-              "action_id": "pick_1"
-            },
-            {
-              "type": "button",
-              "text": {
-                "type": "plain_text",
-                "text": ":hand:",
-                "emoji": true
-              },
-              "value": "2",
-              "action_id": "pick_2"
-            }
-          ]
-        }
-      ]
-    }
-  ]
-
-  const res_round_n = await client.chat.postMessage({
-    channel: channel_id,
-    thread_ts: ts,
-    attachments: attach_round_n
-  });
+  const res_round_n = await SlackClient.post_round_actions(
+    client,
+    channel_id,
+    ts,
+    next_round,
+    player_ids
+  )
 
   setTimeout(async () => {
     client.chat.delete({

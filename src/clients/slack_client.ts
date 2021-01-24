@@ -14,8 +14,16 @@ export function post_kickoff(say, kickoff_user_id) {
   return say(msg_kickoff);
 }
 
-export function post_round_0_actions(client, channel_id, kickoff_ts,) {
-  const msg_attach_round_0 = [
+export function post_round_actions(client, channel_id, kickoff_ts, round, player_ids) {
+  let pretext : string = ""
+  if (round > 0) {
+    let formatted_players : string = ""
+    player_ids.forEach( p_id => { formatted_players += `<@${ p_id }> ` })
+
+    pretext = `${ formatted_players } Hi, survivers!!\n`
+  }
+
+  const msg_attach_actions = [
     {
       color: "#f0ad4e",
       blocks: [
@@ -23,12 +31,12 @@ export function post_round_0_actions(client, channel_id, kickoff_ts,) {
           "type": "section",
           "text": {
             "type": "mrkdwn",
-            "text": "Pick your hand in *10 sec* to join..."
+            "text": `${ pretext }Pick your hand in *10 sec* to join...`
           }
         },
         {
           "type": "actions",
-          "block_id": `${channel_id}_${kickoff_ts}-0`,
+          "block_id": `${ channel_id }_${ kickoff_ts }-${ round }`,
           "elements": [
             {
               "type": "button",
@@ -69,7 +77,7 @@ export function post_round_0_actions(client, channel_id, kickoff_ts,) {
   return client.chat.postMessage({
     channel: channel_id,
     thread_ts: kickoff_ts,
-    attachments: msg_attach_round_0
+    attachments: msg_attach_actions
   });
 }
 
@@ -236,6 +244,29 @@ export function post_match_result_one_win(client, channel_id, kickoff_ts, winner
     channel: channel_id,
     thread_ts: kickoff_ts,
     text: msg_match_result.blocks[0].text.text,
+    blocks: msg_match_result.blocks
+  });
+}
+
+export function post_match_result_max_round(client, channel_id, kickoff_ts, winner_ids) {
+  let formatted_winners : string = ""
+  winner_ids.forEach( w_id => { formatted_winners += `<@${ w_id }> ` })
+
+  const msg_match_result = {
+    blocks: [
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": `10 rounds over!\n*Final winners: ${ formatted_winners }* :tada:`
+        }
+      }
+    ]
+  }
+
+  return client.chat.postMessage({
+    channel: channel_id,
+    thread_ts: kickoff_ts,
     blocks: msg_match_result.blocks
   });
 }
