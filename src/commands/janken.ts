@@ -73,7 +73,6 @@ export default function() {
 }
 
 const judge_round = async (matchesRef, client, match_id, round) => {
-  const EMOJIS = {0: ":fist:", 1: ":v:", 2: ":hand:"}
   const [channel_id, ts] = match_id.split('_')
 
   const hands = await matchesRef
@@ -116,165 +115,78 @@ const judge_round = async (matchesRef, client, match_id, round) => {
 
 
   if (arr_hands.length === 0) {
-    const msg_round_result = {
-      blocks: [
-        {
-          "type": "section",
-          "text": {
-            "type": "mrkdwn",
-            "text": `[Round ${ round + 1 }] No one joins :cry:`
-          }
-        },
-        {
-          "type": "section",
-          "text": {
-            "type": "mrkdwn",
-            "text": `:no_entry: Janken was cancelled`
-          }
-        }
-      ]
-    }
-
-    await client.chat.postMessage({
-      channel: channel_id,
-      thread_ts: ts,
-      blocks: msg_round_result.blocks
-    });
+    SlackClient.post_0_join_round(
+      client,
+      channel_id,
+      ts,
+      round
+    )
 
     return
   } else if (arr_hands.length === 1) {
-    const hand = arr_hands[0]
-    const msg_round_result = {
-      blocks: [
-        {
-          "type": "section",
-          "text": {
-            "type": "mrkdwn",
-            "text": `[Round ${ round + 1 }] Only <@${ player_hands[hand][0] }> joins`
-          }
-        },
-        {
-          "type": "section",
-          "text": {
-            "type": "mrkdwn",
-            "text": `*Final winner: <@${ player_hands[hand][0] }>* :tada:`
-          }
-        }
-      ]
-    }
-
-    await client.chat.postMessage({
-      channel: channel_id,
-      thread_ts: ts,
-      blocks: msg_round_result.blocks
-    });
+    SlackClient.post_1_join_round(
+      client,
+      channel_id,
+      ts,
+      round,
+      player_hands[arr_hands[0]][0]
+    )
 
     return
   }
 
   const arr_distinct_hands = [...new Set(arr_hands)]
 
-  console.log(player_hands)
-  console.log(arr_hands)
-  console.log(arr_distinct_hands)
+  // console.log(player_hands)
+  // console.log(arr_hands)
+  // console.log(arr_distinct_hands)
 
   let round_status : { [s: string]: any } = {}
   if (arr_distinct_hands.length === 2) {
     const loser_idx = ((arr_distinct_hands[0] - arr_distinct_hands[1] + 3) % 3) - 1
     const loser_hand = arr_distinct_hands[loser_idx]
     const winner_hand = arr_distinct_hands[1-loser_idx]
+    const winner_ids = player_hands[winner_hand]
 
-    console.log(`Winner hand: ${winner_hand}`)
-    console.log(`Loser  hand: ${loser_hand}`)
+    // console.log(`Winner hand: ${winner_hand}`)
+    // console.log(`Loser  hand: ${loser_hand}`)
 
-    const arr_winners = player_hands[winner_hand].map(p_id => {
-      return `<@${ p_id }>`
-    })
-
-    const msg_round_result = {
-      blocks: [
-        {
-          "type": "section",
-          "text": {
-            "type": "mrkdwn",
-            "text": `[Round ${ round+1 }] ${ EMOJIS[winner_hand] } wins!!`
-          }
-        }
-      ],
-      attachments: [
-        {
-          "color": "#5cb85c",
-          "blocks": [
-            {
-              "type": "section",
-              "text": {
-                "type": "mrkdwn",
-                "text": `${ arr_winners.join(' ') }`
-              }
-            }
-          ]
-        }
-      ]
-    }
-
-    await client.chat.postMessage({
-      channel: channel_id,
-      thread_ts: ts,
-      text: msg_round_result.blocks[0].text.text,
-      blocks: msg_round_result.blocks,
-      attachments: msg_round_result.attachments
-    });
+    await SlackClient.post_round_result_win(
+      client,
+      channel_id,
+      ts,
+      round,
+      winner_hand,
+      winner_ids
+    )
 
     round_status = {
       winner_hand: winner_hand,
       loser_hand: loser_hand,
-      survivers: player_hands[winner_hand]
+      survivers: winner_ids
     }
-    if (player_hands[winner_hand].length === 1) {
-      const msg_match_result = {
-        blocks: [
-          {
-            "type": "section",
-            "text": {
-              "type": "mrkdwn",
-              "text": `*Final winner: <@${player_hands[winner_hand][0]}>* :tada:`
-            }
-          }
-        ]
-      }
 
-      await client.chat.postMessage({
-        channel: channel_id,
-        thread_ts: ts,
-        text: msg_match_result.blocks[0].text.text,
-        blocks: msg_match_result.blocks
-      });
+    if (winner_ids.length === 1) {
+      await SlackClient.post_match_result_one_win(
+        client,
+        channel_id,
+        ts,
+        winner_ids[0]
+      )
 
       round_status.status = "one_win"
     } else {
-      kick_next_round(matchesRef, client, match_id, round, player_hands[winner_hand])
+      kick_next_round(matchesRef, client, match_id, round, winner_ids)
 
       round_status.status = "multi_win"
     }
   } else {
-    const msg_round_result = {
-      blocks: [
-        {
-          "type": "section",
-          "text": {
-            "type": "mrkdwn",
-            "text": `[Round ${ round + 1 }] Draw`
-          }
-        }
-      ]
-    }
-
-    await client.chat.postMessage({
-      channel: channel_id,
-      thread_ts: ts,
-      text: msg_round_result.blocks[0].text.text,
-      blocks: msg_round_result.blocks
-    });
+    await SlackClient.post_round_result_draw(
+      client,
+      channel_id,
+      ts,
+      round
+    )
 
     let player_ids : string[] = []
     Object.keys(player_hands).forEach(k => {
