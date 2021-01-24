@@ -3,7 +3,7 @@ import { firestore } from '../initializers/firestore'
 import * as SlackClient from '../clients/slack_client'
 
 // TODOs:
-// - move some logics to SlackClient
+// - move some logics to SlackClient <- DONE
 // - show ready/thinking (not use ephemeral)
 // - add text to postMessage APIs
 // - refactor
@@ -27,9 +27,6 @@ export default function() {
       0,
       null
     )
-
-    // console.log(res_kickoff)
-    // console.log(res_round_0)
 
     const matchesRef = firestore.collection(`teams/${res_kickoff.message.team}/matches`)
     const match_id = res_kickoff.channel + '_' + res_kickoff.ts
@@ -98,24 +95,6 @@ const judge_round = async (matchesRef, client, match_id, round) => {
     arr_hands.push(Number(data.hand))
   })
 
-  // if arr_hands.length === 0
-  //   Post "- (No one joined)" in thread
-  //   Post "Janken was cancelled" in broadcast
-  // if arr_hands.length === 1
-  //   Post "Round: - hogehoge :v: (WIN)" in thread
-  //   Post "Winner: @hogehoge" in broadcast
-  // else
-  //   if arr_distinct_hands.length ===2
-  //     Post round_result in thread
-  //     if one_win
-  //       Post match_result in broadcast
-  //     else
-  //       kick_next_round <- include if round >=9
-  //   else
-  //     Post round_result in thread
-  //     kick_next_round
-
-
   if (arr_hands.length === 0) {
     SlackClient.post_0_join_round(
       client,
@@ -139,19 +118,12 @@ const judge_round = async (matchesRef, client, match_id, round) => {
 
   const arr_distinct_hands = [...new Set(arr_hands)]
 
-  // console.log(player_hands)
-  // console.log(arr_hands)
-  // console.log(arr_distinct_hands)
-
   let round_status : { [s: string]: any } = {}
   if (arr_distinct_hands.length === 2) {
     const loser_idx = ((arr_distinct_hands[0] - arr_distinct_hands[1] + 3) % 3) - 1
     const loser_hand = arr_distinct_hands[loser_idx]
     const winner_hand = arr_distinct_hands[1-loser_idx]
     const winner_ids = player_hands[winner_hand]
-
-    // console.log(`Winner hand: ${winner_hand}`)
-    // console.log(`Loser  hand: ${loser_hand}`)
 
     await SlackClient.post_round_result_win(
       client,
