@@ -81,6 +81,32 @@ export function post_round_actions(client, channel_id, kickoff_ts, round, player
   });
 }
 
+export function post_players(client, channel_id, kickoff_ts, player_ids) {
+  let formatted_players : string = player_ids.length === 0 ? "(No one joins yet...)" : ""
+  player_ids.forEach( p_id => { formatted_players += `<@${ p_id }> :speech_balloon: \n` })
+
+  const msg_attach_players = [
+    {
+      color: "#e5e5e5",
+      blocks: [
+        {
+          "type": "section",
+          "text": {
+            "type": "mrkdwn",
+            "text": `${ formatted_players }`
+          }
+        }
+      ]
+    }
+  ]
+
+  return client.chat.postMessage({
+    channel: channel_id,
+    thread_ts: kickoff_ts,
+    attachments: msg_attach_players
+  });
+}
+
 export function update_kickoff(client, channel_id, kickoff_ts, kickoff_user_id, player_ids) {
   let text_players : string
 

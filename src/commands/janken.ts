@@ -5,6 +5,8 @@ import * as SlackClient from '../clients/slack_client'
 // TODOs:
 // - move some logics to SlackClient <- DONE
 // - show ready/thinking (not use ephemeral)
+//   -> round_0: Add list on pick action called
+//   -> round_1+: List previous survivors first, replace status on pick action called
 // - add text to postMessage APIs
 // - refactor
 
@@ -28,6 +30,13 @@ export default function() {
       null
     )
 
+    const res_players = await SlackClient.post_players(
+      client,
+      res_kickoff.channel,
+      res_kickoff.ts,
+      []
+    )
+
     const matchesRef = firestore.collection(`teams/${res_kickoff.message.team}/matches`)
     const match_id = res_kickoff.channel + '_' + res_kickoff.ts
     const match = {
@@ -41,10 +50,21 @@ export default function() {
       .doc(match_id)
       .set(match)
 
+    await matchesRef
+      .doc(match_id)
+      .collection('rounds')
+      .doc('0')
+      .set({players_ts: res_players.ts})
+
     setTimeout(async () => {
       await client.chat.delete({
         channel: res_round_0.channel,
         ts: res_round_0.ts
+      });
+
+      await client.chat.delete({
+        channel: res_players.channel,
+        ts: res_players.ts
       });
 
       const players = await matchesRef
@@ -202,10 +222,22 @@ const kick_next_round = async (matchesRef, client, match_id, current_round, play
     player_ids
   )
 
+  const res_players = await SlackClient.post_players(
+    client,
+    channel_id,
+    ts,
+    player_ids
+  )
+
   setTimeout(async () => {
     client.chat.delete({
       channel: res_round_n.channel,
       ts: res_round_n.ts
+    });
+
+    client.chat.delete({
+      channel: res_players.channel,
+      ts: res_players.ts
     });
 
     judge_round(matchesRef, client, match_id, next_round)
