@@ -4,10 +4,9 @@ import * as SlackClient from '../clients/slack_client'
 
 // TODOs:
 // - move some logics to SlackClient <- DONE
-// - show ready/thinking (not use ephemeral)
-//   -> round_0: Add list on pick action called
-//   -> round_1+: List previous survivors first, replace status on pick action called
+// - show ready/thinking (not use ephemeral) <- DONE
 // - add text to postMessage APIs
+// - seats limit: 10
 // - refactor
 
 export default function() {
@@ -157,7 +156,7 @@ const judge_round = async (matchesRef, client, match_id, round) => {
     round_status = {
       winner_hand: winner_hand,
       loser_hand: loser_hand,
-      survivers: winner_ids
+      survivors: winner_ids
     }
 
     if (winner_ids.length === 1) {
@@ -188,14 +187,14 @@ const judge_round = async (matchesRef, client, match_id, round) => {
     });
     kick_next_round(matchesRef, client, match_id, round, player_ids)
     round_status.status = "draw"
-    round_status.survivers = player_ids
+    round_status.survivors = player_ids
   }
 
   await matchesRef
     .doc(match_id)
     .collection('rounds')
     .doc(String(round))
-    .set(round_status)
+    .set(round_status, {merge: true})
 }
 
 const kick_next_round = async (matchesRef, client, match_id, current_round, player_ids) => {
@@ -228,6 +227,12 @@ const kick_next_round = async (matchesRef, client, match_id, current_round, play
     ts,
     player_ids
   )
+
+  await matchesRef
+    .doc(match_id)
+    .collection('rounds')
+    .doc(String(next_round))
+    .set({players_ts: res_players.ts})
 
   setTimeout(async () => {
     client.chat.delete({

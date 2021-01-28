@@ -5,7 +5,7 @@ export function post_kickoff(say, kickoff_user_id) {
         "type": "section",
         "text": {
           "type": "mrkdwn",
-          "text": `<@${ kickoff_user_id }> wants to play Janken!!\nOpen thread to join!! :point_down:`
+          "text": `<@${ kickoff_user_id }> wants to play Janken!!\n<!here> Open thread to join!! :point_down:`
         }
       }
     ]
@@ -20,7 +20,7 @@ export function post_round_actions(client, channel_id, kickoff_ts, round, player
     let formatted_players : string = ""
     player_ids.forEach( p_id => { formatted_players += `<@${ p_id }> ` })
 
-    pretext = `${ formatted_players } Hi, survivers!!\n`
+    pretext = `${ formatted_players } Hi, survivors!!\n`
   }
 
   const msg_attach_actions = [
@@ -82,28 +82,85 @@ export function post_round_actions(client, channel_id, kickoff_ts, round, player
 }
 
 export function post_players(client, channel_id, kickoff_ts, player_ids) {
-  let formatted_players : string = player_ids.length === 0 ? "(No one joins yet...)" : ""
+  let formatted_players : string = player_ids.length === 0 ? "(10 seats remaining...)" : ""
   player_ids.forEach( p_id => { formatted_players += `<@${ p_id }> :speech_balloon: \n` })
 
-  const msg_attach_players = [
-    {
-      color: "#e5e5e5",
-      blocks: [
-        {
-          "type": "section",
-          "text": {
-            "type": "mrkdwn",
-            "text": `${ formatted_players }`
-          }
+  const msg_players = {
+    blocks: [
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": `Players:`
         }
-      ]
-    }
-  ]
+      }
+    ],
+    attachments: [
+      {
+        color: "#e5e5e5",
+        blocks: [
+          {
+            "type": "section",
+            "text": {
+              "type": "mrkdwn",
+              "text": `${ formatted_players }`
+            }
+          }
+        ]
+      }
+    ]
+  }
 
   return client.chat.postMessage({
     channel: channel_id,
     thread_ts: kickoff_ts,
-    attachments: msg_attach_players
+    blocks: msg_players.blocks,
+    attachments: msg_players.attachments
+  });
+}
+
+export function update_players(client, channel_id, players_ts, survivor_ids, picked_player_ids) {
+  let formatted_players : string = ""
+  if (survivor_ids && survivor_ids.length > 0){ // round 1+
+    survivor_ids.forEach(s_id => {
+      const emoji = picked_player_ids.includes(s_id) ? ":white_check_mark:" : ":speech_balloon:"
+      formatted_players += `<@${ s_id }> ${ emoji } \n`
+    })
+  } else { // round 0
+    picked_player_ids.forEach(p_id => { formatted_players += `<@${ p_id }> :white_check_mark: \n` })
+  }
+
+  const msg_players = {
+    blocks: [
+      {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": `Players:`
+        }
+      }
+    ],
+    attachments: [
+      {
+        color: "#e5e5e5",
+        blocks: [
+          {
+            "type": "section",
+            "text": {
+              "type": "mrkdwn",
+              "text": `${ formatted_players }`
+            }
+          }
+        ]
+      }
+    ]
+  }
+
+  return client.chat.update({
+    channel: channel_id,
+    ts: players_ts,
+    blocks: msg_players.blocks,
+    attachments: msg_players.attachments
   });
 }
 
@@ -203,7 +260,7 @@ export function post_round_result_win(client, channel_id, kickoff_ts, round, win
         "type": "section",
         "text": {
           "type": "mrkdwn",
-          "text": `[Round ${ round + 1 }] ${ EMOJIS[winner_hand] } won!!`
+          "text": `[Round ${ round + 1 }] ${ EMOJIS[winner_hand] } *WON!!*`
         }
       }
     ],
@@ -239,7 +296,7 @@ export function post_round_result_draw(client, channel_id, kickoff_ts, round) {
         "type": "section",
         "text": {
           "type": "mrkdwn",
-          "text": `[Round ${ round + 1 }] Draw`
+          "text": `[Round ${ round + 1 }] *DRAW*`
         }
       }
     ]
