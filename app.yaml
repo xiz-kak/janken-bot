@@ -1,6 +1,7 @@
 runtime: nodejs12
 instance_class: F1
 automatic_scaling:
+  max_instances: 2
   min_idle_instances: automatic
   max_idle_instances: 1
   min_pending_latency: 3000ms
