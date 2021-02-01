@@ -217,6 +217,7 @@ export function post_0_join_round(client, channel_id, kickoff_ts, round) {
   return client.chat.postMessage({
     channel: channel_id,
     thread_ts: kickoff_ts,
+    text: msg_round_result.blocks[1].text.text,
     blocks: msg_round_result.blocks
   });
 }
@@ -244,6 +245,7 @@ export function post_1_join_round(client, channel_id, kickoff_ts, round, winner_
   return client.chat.postMessage({
     channel: channel_id,
     thread_ts: kickoff_ts,
+    text: msg_round_result.blocks[1].text.text,
     blocks: msg_round_result.blocks
   });
 }
@@ -350,6 +352,7 @@ export function post_match_result_max_round(client, channel_id, kickoff_ts, winn
   return client.chat.postMessage({
     channel: channel_id,
     thread_ts: kickoff_ts,
+    text: msg_match_result.blocks[0].text.text,
     blocks: msg_match_result.blocks
   });
 }
