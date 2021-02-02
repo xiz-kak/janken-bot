@@ -15,6 +15,19 @@ export default function() {
 
     let survivors : string[] = []
     if (Number(round) === 0) {
+      const handsCol = await matchesRef
+        .doc(match_id)
+        .collection('players')
+        .get()
+
+      if (handsCol.docs.length >= 10) {
+        await respond({
+          replace_original: false,
+          text: `Sorry, it's full!! 10 players joined already :pray:`
+        });
+        return
+      }
+
       await matchesRef
         .doc(match_id)
         .collection('players')

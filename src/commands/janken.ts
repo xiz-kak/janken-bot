@@ -6,7 +6,8 @@ import * as SlackClient from '../clients/slack_client'
 // - move some logics to SlackClient <- DONE
 // - show ready/thinking (not use ephemeral) <- DONE
 // - add text to postMessage APIs <- DONE
-// - seats limit: 10
+// - seats limit: 10 <- DONE
+// - error handling
 // - refactor
 
 export default function() {
