@@ -1,5 +1,5 @@
 import { app } from './initializers/bolt'
-import { enableRequestLog } from './middleware/request_log'
+import { enableRequestLog } from './middlewares/request_log'
 import janken from './commands/janken'
 import pick from './actions/pick'
 
