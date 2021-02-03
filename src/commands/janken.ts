@@ -2,14 +2,6 @@ import { app } from '../initializers/bolt'
 import { firestore } from '../initializers/firestore'
 import * as SlackClient from '../clients/slack_client'
 
-// TODOs:
-// - move some logics to SlackClient <- DONE
-// - show ready/thinking (not use ephemeral) <- DONE
-// - add text to postMessage APIs <- DONE
-// - seats limit: 10 <- DONE
-// - error handling
-// - refactor
-
 export default function() {
   app.command('/janken', async (args) => { janken(args) })
   app.command('/janken_dev', async (args) => { janken(args) })
