@@ -11,8 +11,12 @@ jobs:
 
       - name: Replace credentials in app.yaml
         run: |
-          sed -i -e 's/$SLACK_BOT_TOKEN/${{ secrets.SLACK_BOT_TOKEN }}/g' app.yaml
           sed -i -e 's/$SLACK_SIGNING_SECRET/${{ secrets.SLACK_SIGNING_SECRET }}/g' app.yaml
+          sed -i -e 's/$SLACK_CLIENT_ID/${{ secrets.SLACK_CLIENT_ID }}/g' app.yaml
+          sed -i -e 's/$SLACK_CLIENT_SECRET/${{ secrets.SLACK_CLIENT_SECRET }}/g' app.yaml
+          sed -i -e 's/$SLACK_STATE_SECRET/${{ secrets.SLACK_STATE_SECRET }}/g' app.yaml
+          sed -i -e 's/$ENCRYPTION_KEY/${{ secrets.ENCRYPTION_KEY }}/g' app.yaml
+          sed -i -e 's/$BUFFER_KEY/${{ secrets.BUFFER_KEY }}/g' app.yaml
 
       - name: Deploy to App Engine
         id: deploy
