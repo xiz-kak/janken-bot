@@ -10,13 +10,9 @@ const receiver = new ExpressReceiver({
   clientSecret: process.env.SLACK_CLIENT_SECRET,
   stateSecret: process.env.SLACK_STATE_SECRET,
   scopes: [
-    'channels:history',
     'chat:write',
     'chat:write.public',
-    'commands',
-    'groups:history',
-    'im:history',
-    'mpim:history',
+    'commands'
   ],
   installationStore: {
     storeInstallation: async (installation) => {
