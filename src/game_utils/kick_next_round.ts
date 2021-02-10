@@ -1,7 +1,6 @@
-import { judge_round } from '../game_utils/judge_round'
 import * as SlackClient from '../clients/slack_client'
 
-export async function kick_next_round(matchesRef, client, match_id, current_round, player_ids) {
+export async function kick_next_round(matchesRef, client, match_id, current_round, player_ids, judge_round) {
   const [channel_id, ts] = match_id.split('_')
 
   if (current_round >= 9) {

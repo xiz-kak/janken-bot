@@ -80,7 +80,7 @@ export async function judge_round(matchesRef, client, match_id, round) {
 
       round_status.status = "one_win"
     } else {
-      kick_next_round(matchesRef, client, match_id, round, winner_ids)
+      kick_next_round(matchesRef, client, match_id, round, winner_ids, judge_round)
 
       round_status.status = "multi_win"
     }
@@ -96,7 +96,7 @@ export async function judge_round(matchesRef, client, match_id, round) {
     Object.keys(player_hands).forEach(k => {
       player_ids.push(...player_hands[k])
     });
-    kick_next_round(matchesRef, client, match_id, round, player_ids)
+    kick_next_round(matchesRef, client, match_id, round, player_ids, judge_round)
     round_status.status = "draw"
     round_status.survivors = player_ids
   }
