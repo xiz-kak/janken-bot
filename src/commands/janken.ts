@@ -6,6 +6,7 @@ import * as SlackClient from '../clients/slack_client'
 export default function() {
   app.command('/janken', async (args) => { janken(args) })
   app.command('/janken_dev', async (args) => { janken(args) })
+  app.command('/janken_oauth', async (args) => { janken(args) })
 
   const janken = async ({ command, ack, say, client, context, respond }) => {
     await ack();

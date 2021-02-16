@@ -10,6 +10,7 @@ automatic_scaling:
   target_throughput_utilization: 0.95
   max_concurrent_requests: 80
 env_variables:
+  SLACK_OAUTH_ENABLED: "$SLACK_OAUTH_ENABLED"
   SLACK_SIGNING_SECRET: "$SLACK_SIGNING_SECRET"
   SLACK_CLIENT_ID: "$SLACK_CLIENT_ID"
   SLACK_CLIENT_SECRET: "$SLACK_CLIENT_SECRET"
