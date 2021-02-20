@@ -1,5 +1,6 @@
 import { app } from './initializers/bolt'
 import { enableRequestLog } from './middlewares/request_log'
+import { enableRedirectInstall } from './requests/redirect_install'
 import janken from './commands/janken'
 import pick from './actions/pick'
 
@@ -12,5 +13,6 @@ import pick from './actions/pick'
 })()
 
 enableRequestLog(app)
+enableRedirectInstall()
 janken()
 pick()
