@@ -11,6 +11,14 @@ export default function() {
   const janken = async ({ command, ack, say, client, context, respond }) => {
     await ack();
 
+    if (command.text === 'help') {
+      respond({
+        response_type: "ephemeral",
+        text: ":wave: Need some help with `/janken` ?\nJust run it!! Fun game will be started :fist: :v: :hand:"
+      });
+      return
+    }
+
     try {
       const res_kickoff = await SlackClient.post_kickoff(
         say,
